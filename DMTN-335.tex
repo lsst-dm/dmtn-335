@@ -1,0 +1,81 @@
+\documentclass[DM,lsstdraft,authoryear,toc]{lsstdoc}
+\input{meta}
+
+% Package imports go here.
+
+% Local commands go here.
+
+%If you want glossaries
+%\input{aglossary.tex}
+%\makeglossaries
+
+\title{Quantifying the Performance of the LSST Detection and Deblending Pipeline: Implications for LSB Science and Beyond}
+
+% This can write metadata into the PDF.
+% Update keywords and author information as necessary.
+\hypersetup{
+    pdftitle={Quantifying the Performance of the LSST Detection and Deblending Pipeline: Implications for LSB Science and Beyond},
+    pdfauthor={Thomas M.Sedgwick},
+    pdfkeywords={}
+}
+
+% Optional subtitle
+% \setDocSubtitle{A subtitle}
+
+\input{authors}
+
+\setDocRef{DMTN-335}
+\setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-335}}
+
+\date{\vcsDate}
+
+% Optional: name of the document's curator
+% \setDocCurator{The Curator of this Document}
+
+\setDocAbstract{%
+We assess the LSST detection and deblending pipeline using source injection experiments on real LSSTCam imaging (data release w_2025_37/DM-52496). Mock NewHorizon galaxies are injected into calibrated single-exposure images, processed through the full pipeline to produce deep coadds, and the resulting catalogues compared against those from unmodified coadds. Injected sources span $18 < \mu_r < 30$ mag arcsec$^{-2}$, $1 < R_{\rm eff} < 40$ arcsec, and $10^7 < M_*/M_\odot < 10^{11.5}$. We find: (i) detection completeness drops from $\sim$95% at $\mu_r = 20$ to $\sim$50% at $\mu_r = 25$ and $\sim$10% at $\mu_r = 27$; (ii) for realistic sources, recovered r-band flux is overestimated by $\sim$100% at $\mu_r = 27$ and by an order of magnitude at $\mu_r = 30$; (iii) at fixed $R_{\rm eff} = 5$ arcsec, flux is increasingly underestimated at fainter surface brightnesses; (iv) 2D $\mu_r$-$R_{\rm eff}$ analysis shows flux underestimation is driven by extendedness, with $R_{\rm eff} > 15$ arcsec sources underestimated by 40-100%; (v) injecting a bright source ($\mu_r = 18$) causes $\sim$60% of nearest-neighbour detections to be lost; (vi) these biases distort the galaxy stellar mass function below $\log(M_*/M_\odot) \sim 9$. These results affect LSB science, weak lensing shear calibration, photometric redshifts, and transient host-galaxy association. We outline next steps for mitigation within the Science Pipelines.
+}
+
+% Change history defined here.
+% Order: oldest first.
+% Fields: VERSION, DATE, DESCRIPTION, OWNER NAME.
+% See LPM-51 for version number policy.
+\setDocChangeRecord{%
+  \addtohist{1}{YYYY-MM-DD}{Unreleased.}{Sedgwick}
+}
+
+
+\begin{document}
+
+% Create the title page.
+\maketitle
+% Frequently for a technote we do not want a title page  uncomment this to remove the title page and changelog.
+% use \mkshorttitle to remove the extra pages
+
+% ADD CONTENT HERE
+% You can also use the \input command to include several content files.
+
+\appendix
+
+\section{Acknowledgements}
+
+This material is based upon work supported in part by the National Science Foundation through Cooperative Agreements AST-1258333 and AST-2241526 and Cooperative Support Agreements AST-1202910 and AST-2211468 managed by the Association of Universities for Research in Astronomy (AURA), and the Department of Energy under Contract No.\ DE-AC02-76SF00515 with the SLAC National Accelerator Laboratory managed by Stanford University.
+Additional Rubin Observatory funding comes from private donations, grants to universities, and in-kind support from LSST-DA Institutional Members.
+
+% Include all the relevant bib files.
+% https://lsst-texmf.lsst.io/lsstdoc.html#bibliographies
+\section{References} \label{sec:bib}
+\renewcommand{\refname}{} % Suppress default Bibliography section
+\bibliography{local,lsst,lsst-dm,refs_ads,refs,books}
+
+% Make sure lsst-texmf/bin/generateAcronyms.py is in your path
+\section{Acronyms} \label{sec:acronyms}
+\input{acronyms.tex}
+% If you want glossary uncomment below -- comment out the two lines above
+%\printglossaries
+
+
+
+
+
+\end{document}
