@@ -44,44 +44,35 @@
 % \setDocCurator{The Curator of this Document}
 
 \setDocAbstract{%
-The Vera C.\ Rubin Observatory Legacy Survey of Space and Time
-\citep[LSST;][]{Ivezic2019} will produce the deepest wide-field optical
-imaging survey to date. Transforming this imaging into reliable galaxy
-catalogues requires robust source detection and deblending, currently
-performed by the \scarletlite algorithm \citep{Melchior2018} within the
-LSST Science Pipelines. In this tech note we present a quantitative
-assessment of the current pipeline using controlled source injection
+We assess the LSST detection and deblending pipeline using source injection
 experiments on real LSSTCam imaging (data release
-\texttt{w\_2025\_37/DM-52496}). We inject mock observations of NewHorizon
-simulated galaxies \citep{Martin2022} into calibrated single-exposure
-images, process the modified exposures through the full pipeline to produce
-deep coadds, and compare the resulting catalogues against those derived from
-the original, unmodified coadds. The injected sources span $r$-band mean
-surface brightnesses (measured within \Reff) of $18 < \mur < 30$
-$\mathrm{mag\,arcsec^{-2}}$, effective radii of $1 < \Reff < 40$ arcsec,
-and stellar masses of $10^7 < \Mstar/\Msun < 10^{11.5}$. We find that:
-(i)~the detection fraction of injected sources drops from ${\sim}95\%$ at
-$\mur = 20$ to ${\sim}50\%$ at $\mur = 25$ and ${\sim}10\%$ at $\mur = 27$
-$\mathrm{mag\,arcsec^{-2}}$; (ii)~for `realistic' sources (where we modify
-size and colour along with surface brightness to produce realistic objects),
-the recovered $r$-band flux is overestimated by ${\sim}100\%$ (a factor of
-2) at $\mur = 27$, and by approximately an order of magnitude at $\mur =
-30$; (iii)~in a controlled experiment at fixed $\Reff = 5$ arcsec, an
-opposite trend emerges: flux is increasingly underestimated at fainter
-surface brightnesses; (iv)~the 2D $\mur$ vs.\ \Reff analysis reveals that
-the underestimation of flux is driven by extendedness, with sources at $\Reff
-> 15$ arcsec showing systematic underestimates of $40$--$100\%$ over a wide
-range of surface brightnesses; (v)~the injection of a bright source ($\mur =
-18$) causes ${\sim}60\%$ of pre-injection nearest-neighbour detections to be
-lost; (vi)~the resulting biases distort the galaxy stellar mass function
-(GSMF) at all masses below $\log(\Mstar/\Msun) \sim 9$. These biases have
-implications not only for LSB science, including dwarf galaxy demographics
-\citep[e.g.][]{Benson2003}, the faint-end slope of the GSMF
-\citep[e.g.][]{Baldry2012}, and intracluster light measurements
-\citep[e.g.][]{Martin2019}, but also for weak lensing shear calibration
-\citep[e.g.][]{Mandelbaum2018}, photometric redshift estimation, and
-transient host-galaxy association. We outline next steps for mitigating
-these biases within the Science Pipelines.
+\texttt{w\_2025\_37/DM-52496}). Mock NewHorizon galaxies
+\citep{Martin2022} are injected into calibrated single-exposure images,
+processed through the full pipeline to produce deep coadds, and the
+resulting catalogues compared against those from unmodified coadds. Injected
+sources span $18 < \mur < 30$~$\mathrm{mag\,arcsec^{-2}}$,
+$1 < \Reff < 40$~arcsec, and $10^7 < \Mstar/\Msun < 10^{11.5}$.
+%
+We find: (i)~detection completeness drops from ${\sim}95\%$ at $\mur = 20$
+to ${\sim}50\%$ at $\mur = 25$ and ${\sim}10\%$ at $\mur = 27$;
+(ii)~for realistic sources, recovered $r$-band flux is overestimated by
+${\sim}100\%$ at $\mur = 27$ and by an order of magnitude at $\mur = 30$;
+(iii)~at fixed $\Reff = 5$~arcsec, flux is increasingly underestimated at
+fainter surface brightnesses; (iv)~2D $\mur$--\Reff analysis shows flux
+underestimation is driven by extendedness, with $\Reff > 15$~arcsec sources
+underestimated by $40$--$100\%$; (v)~injecting a bright source ($\mur = 18$)
+causes ${\sim}60\%$ of nearest-neighbour detections to be lost; (vi)~these
+biases distort the galaxy stellar mass function below
+$\log(\Mstar/\Msun) \sim 9$; (vii)~a dedicated experiment injecting
+ICL-like core-S\'{e}rsic profiles with $R_e$ up to 60~arcsec produces
+${\sim}10^3$ spurious detections and a comparable loss of real sources in
+the most extended and brightest cases, with the summed flux of new
+detections exceeding the injected flux by more than an order of magnitude,
+and with the median flux of sources embedded in the ICL overestimated by a factor 10-100\%.  
+%
+These biases have ramifications for LSB science, weak lensing shear calibration,
+environmental studies, photometric redshifts, transient host-galaxy association and more. We outline
+next steps for mitigation within the Science Pipelines.
 }
 
 % Change history defined here.
@@ -105,7 +96,8 @@ these biases within the Science Pipelines.
 \label{sec:introduction}
 % =============================================================================
 
-The LSST \citep{Ivezic2019} will image approximately 18\,000~deg$^2$ of
+The Vera C. Rubin Observatory Legacy Survey of Space and Time \citep[][]{Ivezic2019}
+will image approximately 18\,000~deg$^2$ of
 the southern sky in six broadband filters ($ugrizy$) over a ten-year survey,
 reaching a co-added $5\sigma$ point-source depth of $r \sim 27.5$~mag. The
 resulting photometric catalogues will underpin a broad range of science, from
@@ -118,56 +110,78 @@ the association of transients with their host galaxies
 critically on the fidelity of the source detection and deblending stages of
 the data reduction pipeline.
 
-At the depth of the LSST co-adds, the surface density of detected sources is
-sufficiently high that the majority of objects are blended with at least one
-neighbour. Deblending --- the process of disentangling the flux contributions
-of overlapping sources --- is therefore not a corner-case correction but a
-fundamental step in catalogue construction. Errors in deblending propagate
-directly into photometric measurements, and from there into derived quantities
-including photometric redshifts \citep[e.g.][]{Benitez2000}, stellar masses
-\citep[e.g.][]{Taylor2011,Bryant2015}, and shape measurements used for weak
-lensing shear estimation \citep[e.g.][]{SheldonHuff2017}. For strong lensing
-analyses, inaccurate deblending of arcs and multiply-imaged sources can
-compromise lens modelling and time-delay cosmography
-\citep[e.g.][]{Suyu2017}. In transient science, mis-association of a
-supernova or other transient with the wrong host galaxy, due to deblending
-errors, propagates into incorrect host-galaxy properties and potentially
-biased cosmological inferences \citep[e.g.][]{Gupta2016,Sako2018}.
+Source detection is the first step
+in constructing source catalogues from Rubin imaging. Any source that is not detected is entirely absent
+from downstream science analyses, introducing hard selection effects that are
+difficult to characterise after the fact. Detection algorithms must balance
+sensitivity against contamination: thresholds that are too conservative will
+miss faint or extended sources such as ultra-diffuse galaxies
+\citep[UDGs;][]{vanDokkum2015}, classical low surface brightness (LSB)
+galaxies \citep[e.g.][]{ImpeyBothun1997}, and dwarf galaxies
+\citep[e.g.][]{Benson2003,Martin2019}, while thresholds that are too
+aggressive produce spurious detections that contaminate catalogues,
+cause extended sources such as intracluster
+light (ICL); the diffuse stellar component of galaxy clusters
+\citep[e.g.][]{Montes2019}; and well-resolved galaxies to be shredded into multiple sources.
 
-The importance of deblending is especially acute for low surface brightness
-(LSB) science. The population of ultra-diffuse galaxies
-\citep[UDGs;][]{vanDokkum2015}, classical LSB galaxies
-\citep[e.g.][]{ImpeyBothun1997}, and dwarf galaxies
-\citep[e.g.][]{Benson2003,Martin2019} is predicted to vastly outnumber the
-high surface brightness galaxy population, yet they are precisely the objects
-most vulnerable to being missed by detection algorithms or having their flux
-misattributed by deblenders. Accurate photometry of these systems is
-necessary to constrain the faint-end slope of the luminosity and mass
-functions, which in turn constrain models of galaxy formation, feedback
-processes, and the nature of dark matter
-\citep[e.g.][]{BullockBoylanKolchin2017}. Similarly, measurements of
-intracluster light (ICL), the diffuse stellar component of galaxy clusters
-\citep[e.g.][]{Montes2019}, require the deblender to correctly apportion
-flux between cluster member galaxies and the diffuse ICL component. Failures
-in this apportionment directly bias ICL fraction estimates and the inferred
+The surface brightness depth of Rubin deep coadds, even at these early stages of the project,
+exacerbates this tension: the population of LSB galaxies is predicted to
+vastly outnumber the high surface brightness galaxy population, yet these are
+precisely the objects most vulnerable to being missed. Their absence from
+catalogues would directly bias the faint-end slope of the luminosity and
+stellar mass functions, which in turn constrain models of galaxy formation,
+feedback processes, and the nature of dark matter
+\citep[e.g.][]{BullockBoylanKolchin2017}.
+
+This surface brightness is also such
+that the majority of detected objects lie in blends with at least one
+neighbouring source. Deblending, the process of disentangling the flux
+contributions of overlapping sources, is therefore not a corner-case
+correction but a fundamental step in catalogue construction. Errors in
+flux attribution propagate directly into photometric measurements, and from there
+into derived quantities including photometric redshifts
+\citep[e.g.][]{Benitez2000}, stellar masses
+\citep[e.g.][]{Taylor2011,Bryant2015}, star formation rates, and shape
+measurements used for weak lensing shear estimation
+\citep[e.g.][]{SheldonHuff2017}. For strong lensing analyses, inaccurate
+deblending of arcs and multiply-imaged sources can compromise lens modelling
+and time-delay cosmography \citep[e.g.][]{Suyu2017}. In transient science,
+mis-association of a supernova or other transient with the wrong host galaxy
+due to deblending errors propagates into incorrect host-galaxy properties and
+potentially biased cosmological inferences \citep[e.g.][]{Gupta2016,Sako2018}.
+In addition, it is intuitive to expect any such biases to correlate with environment,
+as blend complexity increases in dense environments. 
+Similarly, measurements of ICL require the deblender to correctly apportion flux
+between cluster member galaxies and the diffuse ICL component; failures in
+this apportionment directly bias ICL fraction estimates and the inferred
 assembly histories of clusters.
+
+Detection and deblending are tightly coupled in the LSST Science Pipelines and
+cannot be assessed in isolation. The detection stage determines the
+\emph{footprints}; contiguous regions of pixels above threshold; and the
+\emph{peaks} within them that seed the deblender. The quality of
+the deblender's output therefore depends directly on the fidelity of the
+detection stage: missed peaks leave flux unmodelled and either attributed to
+neighbouring sources, or flux entirely attributed to the sky background, while spurious peaks cause the deblender to naively fragment
+real objects or fit models to sky noise.
 
 In this tech note, we present a systematic, quantitative assessment of the
 performance of the current LSST detection and deblending pipeline. We use
 controlled source injection experiments on real LSSTCam deep coadded imaging
-to measure detection completeness and photometric bias as a function of
-surface brightness, effective radius, stellar mass, and local environment.
+to measure detection completeness and photometric bias in both injected sources and their real neighbours, 
+as a function of surface brightness, effective radius, stellar mass, and local environment.
 The structure of this note is as follows. In Section~\ref{sec:pipelines} we
 describe the LSST Science Pipelines processing chain from single exposures to
-catalogue generation, and explain how our injections enter at the
-single-exposure level. In Section~\ref{sec:scarlet} we give a technical
-overview of the \scarletlite deblender. In Section~\ref{sec:failures} we
-describe qualitative failure modes identified in real data. In
+detection, and explain how our injections enter at the
+single-exposure level. In Section~\ref{sec:scarlet} we describe the
+\scarletlite deblender, its role in the pipeline, and give a technical
+overview of the algorithm. In Section~\ref{sec:failures} we
+describe qualitative failure modes identified in real data that lead to our methodology. In
 Section~\ref{sec:methodology} we detail our injection experiment methodology.
 In Section~\ref{sec:results} we present our quantitative results. In
 Section~\ref{sec:implications} we discuss implications for specific science
 cases. In Section~\ref{sec:summary} we summarise our findings, and in
-Section~\ref{sec:nextsteps} we outline next steps.
+Section~\ref{sec:nextsteps} we outline next steps to help mitigate against the issues found.
 
 
 % =============================================================================
@@ -179,7 +193,7 @@ The Rubin Science Pipelines \citep{Bosch2018,Bosch2019} process raw
 single-exposure images through instrument signature removal (ISR), astrometric
 and photometric calibration, and background subtraction, before combining
 them into deep coadded images. In our injection experiments
-(Section~\ref{sec:methodology}), we inject synthetic sources into calibrated
+(Section~\ref{sec:methodology}), we inject synthetic sources into calibrated (post-ISR)
 single-exposure images prior to coaddition. These modified exposures are then
 processed through the full pipeline exactly as any other LSST image would be,
 producing deep coadds that contain our injected sources. We run source
@@ -216,38 +230,16 @@ During this merge, spurious peaks around bright sources are culled according
 to the \texttt{CullPeaksConfig} criteria. It is this merged catalogue of
 Footprints and Peaks that is passed to the deblender.
 
-\subsection{Deblending and Measurement}
+% =============================================================================
+\subsection{Deblending with Scarlet-lite}
+\label{sec:scarlet}
 \label{sec:deblending_meas}
+% =============================================================================
 
 The merged detection catalogue is passed to the \task{ScarletDeblendTask}
 (from the \texttt{lsst.meas.extensions.scarlet} package), which performs
-multiband deblending using the \scarletlite algorithm described in
-Section~\ref{sec:scarlet}. Each Footprint is treated as an independent blend
-scene: the deblender fits a model to every Peak (source) within the Footprint
-simultaneously, apportioning flux among the constituent sources. The deblended
-source models are then used as templates for photometric measurement by
-\task{MeasureMergedCoaddSourcesTask}, which measures fluxes, shapes, and other
-source properties in each band. Finally, \task{MergeMeasurementsTask} combines
-the per-band measurements into the multi-band object catalogue
-(\texttt{objectTable}).
-
-Because our injections enter the pipeline at the single-exposure stage, they
-undergo identical processing to real sources, including PSF convolution during
-warping, noise-correlation corrections, and co-addition weighting. This
-ensures that the detection, deblending, and measurement stages operate on data
-that are statistically indistinguishable from a genuine observation containing
-the injected source. By comparing the output catalogues from the modified and
-unmodified coadds, we isolate the pipeline's response to sources of known
-properties in a fully controlled manner.
-
-
-% =============================================================================
-\section{The Scarlet-lite Deblender}
-\label{sec:scarlet}
-% =============================================================================
-
-The LSST Science Pipelines employ \scarletlite as the default multiband
-deblender for coadded images. \scarletlite is a streamlined reimplementation
+multiband deblending using the \scarletlite algorithm.
+\scarletlite is a streamlined reimplementation
 of the \scarlet deblending framework \citep{Melchior2018}, designed to operate
 within the memory and runtime constraints of the LSST production pipeline. The
 underlying models and optimisation algorithms are identical to those in
@@ -255,7 +247,19 @@ underlying models and optimisation algorithms are identical to those in
 that all bands share a common pixel grid and WCS, enabling analytic gradient
 computation without an external automatic differentiation package.
 
-\subsection{Constrained Matrix Factorisation}
+Each footprint arriving from the detection stage is treated as an independent blend
+scene: the deblender fits a multiband model to every peak 'source' within the Footprint
+simultaneously, apportioning flux among the constituent sources. Each source is fitted with either one colour (single `SED') or two colours.
+Often these 2 components take the form of a bulge and disc component of distinct colour, however no bulge-disc prior is implemented,
+and these components can take any morphological form relative to each other,
+with the only constraint being that they must be monotonically decreasing in flux from the centroid position found by detection.
+The deblended source models are then used as templates for photometric measurement by
+\task{MeasureMergedCoaddSourcesTask}, which measures fluxes, morphologies, and other
+source properties in each band. Finally, \task{MergeMeasurementsTask} combines
+the per-band measurements into the multi-band object catalogue
+(\texttt{objectTable}). Sections~\ref{sec:matrix_factorisation} through \ref{sec:agnostic} give a more in depth overview of the algorithms utilised by \scarletlite.
+
+\subsubsection{Constrained Matrix Factorisation}
 \label{sec:matrix_factorisation}
 
 \scarlet models the observed multi-band scene as a sum of $K$ source
@@ -278,7 +282,7 @@ PSF\@. \scarlet solves for $\mathbf{A}_k$ and $\mathbf{S}_k$ simultaneously
 across all bands by minimising a $\chi^2$ loss function under a set of
 physically motivated constraints \citep{Melchior2018}.
 
-\subsection{Optimisation: Proximal Gradient Descent}
+\subsubsection{Optimisation: Proximal Gradient Descent}
 \label{sec:optimisation}
 
 The minimisation is performed using the adaptive proximal gradient method
@@ -293,7 +297,7 @@ non-differentiable constraints through their proximal operators, which project
 the current iterate onto the feasible set defined by the constraint
 \citep{ParikhBoyd2014}.
 
-\subsection{Constraints}
+\subsubsection{Constraints}
 \label{sec:constraints}
 
 \textbf{Non-negativity.}\ Both $\mathbf{A}_k$ and $\mathbf{S}_k$ are
@@ -326,7 +330,7 @@ gradients or multiple stellar populations are therefore represented by at most
 two spectral-morphological components, which limits the fidelity of the model
 for sources with, e.g., three or more distinct colour regions.
 
-\subsection{Initialisation and Convergence}
+\subsubsection{Initialisation and Convergence}
 \label{sec:initialisation}
 
 Source morphologies are initialised from the detection Footprint and the
@@ -338,7 +342,7 @@ parameters, including \texttt{maxIter} and \texttt{relativeError}). If a
 source fails to initialise (e.g.\ due to insufficient signal), \scarlet can
 optionally fall back to a model with fewer components.
 
-\subsection{PSF Handling and Photometry}
+\subsubsection{PSF Handling and Photometry}
 \label{sec:psf_handling}
 
 \scarlet operates on PSF-convolved models: each component model
@@ -351,7 +355,7 @@ reprocessing without re-running the optimisation. The model yields consistent
 multiband deblended fluxes in each band, with the multiband fit providing
 cross-band regularisation.
 
-\subsection{Key Limitation: Agnosticism to Detection Legitimacy}
+\subsubsection{Key Limitation: Agnosticism to Detection Legitimacy}
 \label{sec:agnostic}
 
 A critical feature of \scarlet is that it is entirely agnostic to the
@@ -380,7 +384,7 @@ robust deblending for LSST catalogue science.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.85\textwidth]{figures/image1}
+  \includegraphics[width=0.85\textwidth]{figures/blend_complexity_distribution}
   \caption{Distribution of blend complexity (number of Peaks per Footprint)
     in the LSST deep coadd catalogue. The majority of Footprints contain a
     single Peak, but multi-peak blends are common, with a long tail extending
@@ -407,7 +411,7 @@ underestimated.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image2}
+  \includegraphics[width=\textwidth]{figures/leftbehind_flux_failure}
   \caption{Taken from \citet{Melchior2018}. Failure Mode~1: left-behind flux
     in a non-monotonic, multi-SED source. \textit{Left}: $gri$ colour composite
     of the observed blend with labelled source identifiers. \textit{Centre}:
@@ -434,7 +438,7 @@ catalogue is contaminated with spurious sources.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image3}
+  \includegraphics[width=\textwidth]{figures/shredding_extended_sources}
   \caption{Failure Mode~2: shredding of extended sources. $gri$ composite
     images of three blended scenes from real LSST deep coadds in which tidal
     streams, ICL, or asymmetric galaxy components have been misidentified as
@@ -451,13 +455,14 @@ catalogue is contaminated with spurious sources.
 \label{sec:methodology}
 % =============================================================================
 
-To quantify the severity of the failure modes identified above, we designed a
-suite of controlled injection experiments. We inject synthetic galaxy images
-with known ground-truth photometric properties into calibrated single-exposure
-images, process these modified exposures through the full LSST pipeline (from
-warping through coaddition, detection, deblending, and measurement), and
-compare the recovered catalogue properties against the input values and against
-the catalogues produced from the unmodified coadds.
+To quantify the severity of the failure modes identified above,
+we designed a suite of controlled injection experiments.
+We inject synthetic galaxy images with known ground-truth photometric properties
+into calibrated single-exposure images prior to coaddition,
+so that the injected sources undergo identical processing to real sources,
+including sky subtraction, co-addition weighting, PSF convolution, detection, deblending, and measurement.
+We then compare the recovered catalogue properties against the input values and against the catalogues produced
+from the unmodified coadds, isolating the pipeline's response to sources of known properties in a fully controlled manner.
 
 \subsection{Synthetic Sources: NewHorizon Simulations}
 \label{sec:newhorizon}
@@ -474,7 +479,7 @@ detections before and after injection.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/image4}
+  \includegraphics[width=0.9\textwidth]{figures/newhorizon_dwarf_galaxies}
   \caption{Mock observations ($gri$ composite image) of six NewHorizon
     simulated dwarf galaxies \citep{Martin2022} used as injection templates.}
   \label{fig:newhorizon}
@@ -524,7 +529,7 @@ KDE, yielding 100 realistic injections per surface brightness bin.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image5}
+  \includegraphics[width=\textwidth]{figures/cosmos_kde_marginals}
   \caption{Marginal distributions of injected source and nearest-neighbour
     properties drawn from the COSMOS-UltraVISTA KDE for the $\mur = 24$
     $\mathrm{mag\,arcsec^{-2}}$ bin. Grey: full COSMOS sample ($z < 0.4$).
@@ -535,7 +540,7 @@ KDE, yielding 100 realistic injections per surface brightness bin.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image6}
+  \includegraphics[width=\textwidth]{figures/cosmos_mean_properties_vs_sb}
   \caption{Mean properties of the reference COSMOS-UltraVISTA $z < 0.4$
     source sample as a function of $r$-band surface brightness (blue line).
     The list of properties is the same as shown in Figure~\ref{fig:kde_marginals}.
@@ -592,7 +597,7 @@ and using a random NewHorizon galaxy for each injection.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image7}
+  \includegraphics[width=\textwidth]{figures/injections_bright_sb20}
   \caption{Nine example injections at $\mur = 20.0$~$\mathrm{mag\,arcsec^{-2}}$
     in real LSST deep coadds. Each stamp shows the same injected NewHorizon
     galaxy (ID:\,NH00125) with its $ugrizy$ fluxes and spatial resolution
@@ -603,7 +608,7 @@ and using a random NewHorizon galaxy for each injection.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image8}
+  \includegraphics[width=\textwidth]{figures/injections_faint_sb24}
   \caption{As Figure~\ref{fig:injections_bright}, but for a target of
     $\mur = 24.0$~$\mathrm{mag\,arcsec^{-2}}$, and with injections at
     different locations and using different NewHorizon galaxies per injection.}
@@ -631,7 +636,7 @@ now-undetected neighbours.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image9}
+  \includegraphics[width=\textwidth]{figures/blend_before_after_injection}
   \caption{A single blend before injection (left four panels: model, rendered
     model, observation, residual) and after the injection of a bright
     NewHorizon galaxy at $\mur = 21$~$\mathrm{mag\,arcsec^{-2}}$ (right four
@@ -650,7 +655,7 @@ properties drawn from the COSMOS-UltraVISTA KDE
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image10}
+  \includegraphics[width=\textwidth]{figures/exp1_detection_flux_bias}
   \caption{Detection and deblending performance vs.\ $r$-band surface
     brightness for Experiment~1 (COSMOS-drawn galaxy properties, 100
     injections per bin). \textit{Left}: detection fraction. \textit{Centre}:
@@ -701,7 +706,7 @@ other properties held fixed: $\Reff = 5$~arcsec, $u-r = 1.25$~mag, $z =
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image11}
+  \includegraphics[width=\textwidth]{figures/exp2_detection_flux_bias}
   \caption{As Figure~\ref{fig:exp1_results}, but for Experiment~2: only
     surface brightness is varied; $\Reff = 5$~arcsec, $u-r = 1.25$~mag, $z
     = 0.1$, $\log(\Mstar/\Msun) = 9.0$. Note the qualitatively opposite flux
@@ -742,7 +747,7 @@ bias.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image12}
+  \includegraphics[width=\textwidth]{figures/flux_bias_sb_vs_reff}
   \caption{Median $ugrizy$ integrated flux bias (\%) as a function of
     $r$-band surface brightness ($x$-axis) and $\log(\Reff/\mathrm{arcsec})$
     ($y$-axis). Red shading: flux underestimation (negative bias). Blue
@@ -791,7 +796,7 @@ bias as a function of input stellar mass.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/image13}
+  \includegraphics[width=\textwidth]{figures/detection_stellar_mass_bias}
   \caption{Left: detection fraction vs.\ input stellar mass
     $\log(\Mstar/\Msun)$. Blue: injected source. Orange: nearest neighbour.
     Green: rest of blend. Right: stellar mass bias $\Delta \log M_*$ (dex)
@@ -821,7 +826,7 @@ biases (green).
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.85\textwidth]{figures/image14}
+  \includegraphics[width=0.85\textwidth]{figures/galaxy_stellar_mass_function}
   \caption{The galaxy stellar mass function (normalised number density per
     dex). Blue: COSMOS-UltraVISTA ($z < 0.4$). Orange: LSST object catalogue
     (matched area). Green: COSMOS-UltraVISTA with the measured LSST detection
@@ -852,6 +857,153 @@ is the primary diagnostic.
 
 
 % =============================================================================
+\section{ICL-like Extended Source Injection Experiment}
+\label{sec:icl_experiment}
+% =============================================================================
+
+The results of Sections~\ref{sec:exp2} and~\ref{sec:2d_bias} demonstrate
+that extendedness is the primary driver of flux underestimation and
+source fragmentation in the current pipeline. To probe this regime more
+directly, we designed a dedicated injection experiment using
+intracluster-light-like (ICL-like) synthetic sources whose surface
+brightness profiles extend to considerably larger angular scales than the
+NewHorizon dwarf galaxies employed in the preceding sections.
+
+\subsection{ICL Source Model}
+\label{sec:icl_model}
+
+We model the injected ICL-like sources using the core-S\'{e}rsic profile
+\citep{Graham2003}, which provides a smooth connection between an outer
+S\'{e}rsic component and an inner power-law component. The core-S\'{e}rsic
+profile can be expressed as
+\begin{equation}
+  I(R) = I' \left[1 + \left(\frac{R_{b,\mathrm{cS}}}{R}\right)^{\!\alpha}\right]^{\!\gamma/\alpha}
+         \exp\!\left[-b_n\left(\frac{R^{\alpha} + R_b^{\alpha}}
+                                    {R_e^{\alpha}}\right)^{\!1/(n\alpha)}\right],
+  \label{eq:core_sersic}
+\end{equation}
+where $R_e$ is the effective radius, $R_{b,\mathrm{cS}}$ the break
+(core) radius, $n$ the S\'{e}rsic index, $\alpha$ the sharpness of the
+transition between the inner power law and the outer S\'{e}rsic profile,
+$\gamma$ the logarithmic slope of the inner power law, and $b_n$ is
+defined such that $R_e$ encloses half the total model luminosity. The
+normalisation $I'$ is set by the target peak surface brightness $\mu_b$.
+We adopt parameters representative of the brightest cluster galaxy
+A2261-BCG as determined by \citet{BonfiniGraham2016}: $n = 3.9$,
+$\alpha = 3.6$, $\gamma = 0.02$, and $R_b / R_e = 0.12$. We assume an
+axis ratio $q = 0.7$ and a random position angle, and render the 2D
+profile in the LSST $r$ band. Multi-band fluxes are generated by
+applying a uniform old-stellar-population colour gradient consistent
+with typical ICL observations.
+
+\subsection{Experimental Design}
+\label{sec:icl_design}
+
+We vary two parameters: the effective radius $R_e \in [5, 60]$~arcsec
+and the peak surface brightness $\mu_b \in [20, 28]$~$\mathrm{mag\,arcsec^{-2}}$.
+Injections are performed into a single patch (patch~83, tract~9812) to
+hold the background and crowding conditions fixed, with one injection per
+$(R_e, \mu_b)$ bin. As in the preceding experiments, we process the
+modified single-exposure images through the full LSST pipeline and
+compare the resulting catalogues against the pre-injection baseline. For
+each bin we compute: (i)~the number of real sources lost after
+injection; (ii)~the number of new (spurious) sources created by the
+pipeline; (iii)~the total flux attributed to new detections relative
+to the injected flux; (iv)~the fraction of this flux assigned to the
+primary (nearest-to-core) detection; (v)~the aggregated flux bias over
+the entire scene; and (vi)~the median $r$-band flux change of surviving
+pre-injection neighbours.
+
+\subsection{Detection Disruption}
+\label{sec:icl_detection}
+
+Figure~\ref{fig:icl_det_spurious} presents the impact of the presence of an ICL-like source on detection: through both the loss of real
+detections and the creation of spurious ones. 
+
+The left panel shows the
+number of new detections (not detected within 5 pixels of their centroid position before injection)
+introduced by the injecton of a single extended source. For the brightest and most extended injected sources ($\mu_b \lesssim 22$, $R_e \gtrsim 30$~arcsec),
+of order $10^3$ spurious sources are created. It appear that despite the smooth sersic nature of injections, 
+the impact of real sources in both the signal and variance plane causes the peak finding algorithm to produce spurious detections.
+
+The right panel shows the
+corresponding number of real sources that were detected in the pre-injection catalogue
+but are absent (within a 5 pixel tolerance) from the post-injection catalogue within the footprint of
+the injected profile, with of order $10^3$ real
+sources lost from the catalogue due to the presence of the diffuse flux.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/icl_detection_lost_spurious}
+  \caption{Detection disruption from ICL-like core-S\'{e}rsic injections as a
+    function of $r$-band peak surface brightness ($x$-axis) and effective
+    radius ($y$-axis). \textit{Left}: number of new (spurious) sources
+    created by the detection pipeline within the injected source's footprint. \textit{Right}: number of real sources lost from the
+    catalogue after injection.
+    In both panels, the most extended and brightest injections ($R_e \gtrsim 30$~arcsec,
+    $\mu_b \lesssim 22$) produce of order $10^3$ lost and $10^3$ spurious
+    detections.}
+  \label{fig:icl_det_spurious}
+\end{figure}
+
+\subsection{Flux Bias}
+\label{sec:icl_flux}
+
+Figure~\ref{fig:icl_flux_bias} presents four complementary flux
+diagnostics. The upper-left panel shows the total flux attributed by the
+pipeline to new detections (not found within a 5 pixel tolerence before injection) as a percentage of the true injected flux.
+For the brightest, most extended injections ($\mu_b \lesssim 22$, $R_e \gtrsim
+30$~arcsec), the summed flux of the spurious sources exceeds the
+injected flux by more than an order of magnitude. This precludes a straightforward post-hoc correction
+in which one simply sums the flux of shredded components to reconstruct extended sources.
+
+The upper-right panel shows the flux bias of the primary new detection
+(defined as the detection nearest to the profile centre). Over a wide range of surface brightnesses,
+this source captures only a small fraction of the total
+injected flux, reemphasising the fact that the ICL emission is distributed
+across many child sources. 
+
+The lower-left panel presents the aggregated scene flux bias: the
+difference between the total flux of all detected sources within the
+injection footprint after injection and the corresponding total before
+injection in the same footprint, minus the known injected flux, normalised by the injected
+flux. If the pipeline were to perfectly conserve flux, this quantity
+would equal zero. Instead, bright and extended ICL-like injections
+produce scene-level flux errors of order $50$--$100\%$ in both
+directions (overestimation and underestimation), while more compact and
+fainter injections show a persistent underestimate of the total scene
+flux, albeit of smaller magnitude.
+
+Finally, the lower-right panel shows the median $r$-band flux bias of
+surviving pre-injection neighbours within the post-injection blend mask: real sources that were detected
+both before and after injection (within a 5 pixel tolerance). The median
+neighbour flux bias is found to be positive across the entire $(R_e, \mu_b)$ gridspace.
+Sources embedded in diffuse ICL-like emission systematically gain flux.
+The effect is present for all but the faintest, most compact injections.
+This result demonstrates that the deblender systematically misattributes a portion of the diffuse ICL
+emission to pre-existing sources rather than to a single extended
+component.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/icl_flux_bias_panels}
+  \caption{Flux bias diagnostics for ICL-like core-S\'{e}rsic injections.
+    \textit{Upper left}: total flux of new (spurious) detections as a percentage
+    of the injected flux. Values exceeding $100\%$ indicate that the pipeline
+    attributes more flux to new sources than was injected.
+    \textit{Upper right}: $r$-band flux bias of the primary new detection
+    (nearest to the core).
+    \textit{Lower left}: aggregated scene flux bias
+    ($[\Sigma F_{\rm with} - \Sigma F_{\rm without} - F_{\rm injected}] /
+      F_{\rm injected}$), measuring net flux non-conservation.
+    \textit{Lower right}: median $r$-band flux change of surviving
+    pre-injection neighbours. Positive values (red) indicate flux overestimation;
+    negative values (blue) indicate underestimation.}
+  \label{fig:icl_flux_bias}
+\end{figure}
+
+
+% =============================================================================
 \section{Implications for LSST Science Cases}
 \label{sec:implications}
 % =============================================================================
@@ -871,7 +1023,13 @@ populated by many dwarf galaxies and ultra-diffuse galaxies
 \citep{vanDokkum2015,Martin2019}. The surviving detected dwarfs are subject
 to flux biases of up to a factor of 10. Any measurement of the faint-end
 slope from LSST catalogues will therefore require careful completeness and
-bias corrections.
+bias corrections. As shown in Figure~\ref{fig:mass_bias}, we predict that
+the galaxy stellar mass function as derived from scarlet-produced object catalogues
+would exhibit a substantial overestimate in number density at $10^8$ M$_{\odot}$
+and a yet more severe underestimate in number density at $10^7$ M$_{\odot}$ and below.
+Such biased results would lead to inaccurate conclusions for the nature of the cosmology.
+Work must be undertaken to: (i) optimise the peak finding algorithm to better catch the faintest compact sources, and
+(ii) attribute flux to blended sources more reliably in the LSB regime.
 
 \subsection{Intracluster Light}
 \label{sec:implications_icl}
@@ -882,18 +1040,33 @@ the deblender to separate diffuse ICL from the envelopes of bright cluster
 galaxies. The ${\sim}40$--$100\%$ flux underestimate we find for extended
 sources ($\Reff > 15$~arcsec; Figure~\ref{fig:2d_bias}) indicates that a
 substantial fraction of extended source flux is being lost to shredding.
+The dedicated ICL-like injection experiment
+(Section~\ref{sec:icl_experiment}) confirms this picture:
+injections with $R_e \gtrsim 30$~arcsec and $\mu_b \lesssim 22$ produce of
+order $10^3$ spurious detections and cause the loss of a comparable number
+of real sources in their vicinity, while the total flux attributed
+to spurious objects exceeds the injected flux by more than an order of magnitude.
+These results indicate that the current pipeline, which was designed and optimised
+for the galaxy-scale regime, does not perform reliably upon ICL-scale diffuse
+emission in its present form. Figure~\ref{fig:icl_flux_bias} indicates that
+a simple post procesing step to recombine shredded components in extended sources is unlikely to be sufficient.
+As such, any measurement of the ICL fraction from
+LSST catalogues will therefore require at least one of the following:
+(i) adjustments to the current peak-detection implementation,
+(ii) relaxation of \scarlet's monotonicity constraints,
+(iii) a dedicated spurious-detection suppression step prior to deblending, or
+(iv) an ICL-extraction step upstream of the standard detection pipeline.
 
 \subsection{Weak Gravitational Lensing}
 \label{sec:implications_wl}
 
-Weak lensing shear estimation \citep[e.g.][]{SheldonHuff2017,Mandelbaum2018}
-relies on accurate galaxy shape measurements, which depend on unbiased flux and
-morphology models. The flux redistribution we observe between injected sources
-and their neighbours suggests that the effective PSF model used for shape
-measurement may be contaminated. The LSST DESC requirements
-\citep{LSST_DESC2018} place stringent limits on multiplicative shear bias
-($|m| < 0.003$), and it is important to determine whether deblending
-systematics contribute at this level.
+Weak-lensing shear estimation \citep[e.g.][]{SheldonHuff2017,Mandelbaum2018}
+relies on accurate galaxy shape measurements, which in turn require unbiased flux
+and morphology models. The flux redistribution and morphological distortion we
+observe, both for injected sources and their neighbours, risk contaminating
+the effective PSF model used for shape measurement. Given the stringent LSST DESC
+limit on multiplicative shear bias ($|m| < 0.003$; \citealt{LSST_DESC2018}), it
+is important to determine whether deblending systematics contribute at this level.
 
 \subsection{Strong Lensing}
 \label{sec:implications_sl}
@@ -921,8 +1094,8 @@ Ia supernovae, into biased cosmological distance estimates.
 
 Photometric redshift estimation \citep[e.g.][]{Benitez2000} requires accurate
 multi-band photometry. The colour-dependent flux biases introduced by the
-deblender --- particularly the monotonicity-driven underestimate of flux in
-non-monotonic features with distinct colours from the source centre --- will
+deblender, particularly the monotonicity-driven underestimate of flux in
+non-monotonic features with distinct colours from the source centre, will
 distort the SED used for photo-$z$ estimation.
 
 
@@ -969,6 +1142,22 @@ principal findings are as follows:
     below $\log(\Mstar/\Msun) \sim 9$, with a ${\sim}0.5$~dex excess at
     $\log(\Mstar/\Msun) \sim 8$ and a ${\sim}1$~dex deficit at
     $\log(\Mstar/\Msun) < 8$.
+
+  \item \textbf{Current limitations for ICL-like extended emission.} A
+    dedicated experiment injecting core-S\'{e}rsic profiles with effective
+    radii up to 60~arcsec confirms that extendedness is the primary
+    challenge for the current detection and deblending algorithms. For the
+    most extended and
+    brightest ICL-like injections ($R_e \gtrsim 30$~arcsec,
+    $\mu_b \lesssim 22$~$\mathrm{mag\,arcsec^{-2}}$), the pipeline
+    creates of order $10^3$ spurious detections and simultaneously removes
+    a comparable number of real sources from the catalogue. The total flux
+    assigned to spurious detections exceeds the injected flux by more than
+    an order of magnitude, and the primary detection nearest the profile
+    core captures only a small fraction of the injected light. Surviving
+    neighbours embedded in the diffuse emission systematically gain flux,
+    with a positive median flux bias across essentially the entire
+    parameter space.
 \end{enumerate}
 
 
@@ -983,35 +1172,37 @@ we outline below.
 \paragraph{Morphological priors for \scarlet.}
 The current \scarlet implementation uses entirely non-parametric morphologies
 with no prior on the shape of $\mathbf{S}_k$ beyond monotonicity and
-(optionally) symmetry. Introducing a data-driven morphological prior, learned
-from e.g.\ HST or Euclid imaging, could regularise the deblender towards
-physically plausible galaxy shapes. Recent work on score-matching neural
-networks for galaxy morphology priors \citep{Sampson2024} offers a promising
+(optionally) symmetry. Introducing a data-driven morphological prior on the range of
+reasonable morphologies for disturbed, interacting and isolated galaxies
+could regularise the deblender towards physically plausible galaxy shapes. 
+Recent work on score-matching neural networks for galaxy morphology priors \citep{Sampson2024} offers a promising
 avenue for integrating learned priors into the \scarlet framework.
 
 \paragraph{Improved detection of extended sources.}
 The shredding failure mode arises from the \task{DetectCoaddSourcesTask}
-placing spurious Peaks within extended galaxies. Developing scale-dependent
-detection thresholds, or a multi-resolution detection scheme that identifies
-extended sources at lower spatial frequencies before detecting point sources,
-could reduce the rate of spurious detections. An iterative feedback loop
-between the deblender and the detector, in which \scarlet flags Peaks with
+placing spurious peaks within extended galaxies. Developing scale-dependent
+detection thresholds, or a spatially aware detection scheme that better considers the flux
+in adjacent pixels could reduce the rate of spurious detections.
+An iterative feedback loop between the deblender and the detector, in which \scarlet flags peaks with
 implausible models for rejection, would also mitigate this failure mode.
 
 \paragraph{Conditional relaxation of the monotonicity constraint.}
-The monotonicity constraint is responsible for the left-behind flux failure
-mode in sources with star-forming regions and spiral arms. A conditional
+The monotonicity constraint is found to often be responsible for the left-behind flux failure
+mode in sources with structure such as star-forming regions and spiral arms. A conditional
 approach, in which the constraint is relaxed for sources above a configurable
 signal-to-noise threshold or spatial extent, could improve flux recovery for
 late-type galaxies while retaining the regularisation benefits for faint or
 poorly resolved sources.
 
 \paragraph{Flux reassembly for shredded sources.}
-Our current analysis identifies the injected source by matching the nearest
-detection to the injection position. If the source has been shredded, some of
-its flux resides in spurious child sources. A post-hoc flux reassembly step,
-which sums the flux of all child sources within the injection footprint, would
-quantify whether the flux is being redistributed (recoverable) or lost entirely.
+Our ICL injection results (Section~\ref{sec:icl_experiment}) show that naive
+reassembly of child-source fluxes within the injection footprint does not recover
+the true injected flux, when examined over a wide range of surface brightness and
+source extendedness. Even if \scarlet\ sources could be reliably flagged for
+recombination, our findings indicate that a simple flux summation is unlikely to
+be sufficient; any viable correction for shredded sources will therefore require a
+more sophisticated approach which would warrant further investigation,
+and the first priority would be to avoid the shredding of galaxies to occur prior to deblending.
 
 \paragraph{Downstream science impact studies.}
 Dedicated injection experiments should be performed within the shape
@@ -1024,9 +1215,8 @@ pipeline. We encourage members of the relevant LSST science collaborations
 In summary, the current LSST detection and deblending pipeline introduces
 systematic biases that are significant across a wide range of galaxy
 properties, not only in the LSB regime. We stress the importance of
-quantifying and addressing these biases as early as possible, and we look
-forward to continued collaboration with the Data Management team and the
-broader Rubin community.
+quantifying and addressing these biases as early as possible,
+in order to maximise the long-term scientific output of Rubin.
 
 \smallskip
 \noindent\textit{Note on continuity:} Due to funding constraints this work

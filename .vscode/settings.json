@@ -1,0 +1,21 @@
+{
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "/Library/TeX/texbin/latexmk",
+      "args": [
+        "-xelatex",
+        "-bibtex",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-f",
+        "%DOC%"
+      ],
+      "env": {
+        "TEXMFHOME": "lsst-texmf/texmf",
+        "PATH": "/Library/TeX/texbin:/usr/bin:/bin:/usr/sbin:/sbin"
+      }
+    }
+  ]
+}
